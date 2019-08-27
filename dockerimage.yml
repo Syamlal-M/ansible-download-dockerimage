@@ -1,0 +1,44 @@
+
+---
+ - name: "installing docker and pull the docker images"
+   hosts: docker
+   vars:
+    group1: docker
+    user1: ec2-user
+   tasks:
+     - name: "inatlling python3 and pip package manager"
+       become: true
+       yum: name=python3,python-pip state=present
+
+     - name: "Install docker python extension"
+       become: true
+       pip: name=docker-py
+
+     - name: "install the docker"
+       become: true
+       yum: name=docker state=present
+
+     - name: "restarting docker service"
+       become: true
+       service: name=docker state=restarted enabled=yes
+
+     - name: "Add or check the group docker "
+       become: true
+       group:
+         name: "{{group1}}"
+         state: present
+     - name: " add the  user ec2-user to the group docker "
+       become: true
+       user:
+          name: "{{user1}}"
+          shell: /bin/bash
+          groups: "{{group1}}"
+          append: yes
+
+     - name: "pull the docker images from docker HUB"
+       docker_image:
+           name:  "{{item}}"
+       with_items:
+             - fedora:28
+             - httpd:2
+             - ubuntu:18.04
